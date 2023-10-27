@@ -22,6 +22,7 @@ class Track:
     _current_timeout: int
 
     def __init__(self, box: Box) -> None:
+        self._current_timeout = self.track_timeout
         self.position_history = [box.center]
         self.last_box = box
 
@@ -36,8 +37,8 @@ class Track:
         check if a new box is in range
         """
         return abs(
-            box.center - box.center
-        ).length < max(
+            (box.center - box.center).length
+        ) < max(
             self.last_box.size.x, self.last_box.size.y
         ) / 4
 
@@ -52,15 +53,19 @@ class Track:
                 print(self, "degraded")
                 self._track_type = -1
 
+            return
+
         if self._track_type == 0:
-            self._current_timeout = 20
+            self._current_timeout = self.track_timeout
             self.position_history.append(box.center)
 
-            if abs(self.position_history[0] - self.position_history[-1]).length > self.movement_threshold:
+            if abs(
+                    (self.position_history[0] - self.position_history[-1]).length
+            ) > self.movement_threshold:
                 self._track_type = 1
 
         elif self._track_type == 1:
-            self._current_timeout = 20
+            self._current_timeout = self.track_timeout
             self.position_history.append(box.center)
 
         else:

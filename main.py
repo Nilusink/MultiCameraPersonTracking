@@ -9,11 +9,12 @@ Nilusink
 """
 # import the necessary packages
 from imutils.object_detection import non_max_suppression
-from tools import Track, Box, Vec2
 from time import time
 import numpy as np
 import imutils
 import cv2
+
+from tracker.tools import Track, Box, Vec2
 
 # initialize the HOG descriptor/person detector
 hog = cv2.HOGDescriptor()
@@ -62,22 +63,23 @@ while True:
         for track in TRACKS:
             for p in pick.copy():
                 b = Box(
-                    position=Vec2(p[0], p[1]),
-                    size=Vec2(p[2], p[3])
+                    position=Vec2.from_cartesian(p[0], p[1]),
+                    size=Vec2.from_cartesian(p[2], p[3])
                 )
 
                 if track.in_range(b):
-                    print(f"updating: {track} ({b})")
+                    # print(f"updating: {track} ({b})")
                     track.update_track(b)
                     pick.remove(p)
+                    break
 
-                else:
-                    track.update_track()
+            else:
+                track.update_track()
 
         for p in pick:
             TRACKS.append(Track(Box(
-                position=Vec2(p[0], p[1]),
-                size=Vec2(p[2], p[3])
+                position=Vec2.from_cartesian(p[0], p[1]),
+                size=Vec2.from_cartesian(p[2], p[3])
             )))
 
             print(f"new track: {TRACKS[-1]}")
@@ -119,8 +121,8 @@ while True:
 
     # show some information on the number of bounding boxes
     # show the output images
-    cv2.imshow("Before NMS", orig)
-    cv2.imshow("After NMS", image)
+    cv2.imshow("raw", orig)
+    cv2.imshow("tracking", image)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
