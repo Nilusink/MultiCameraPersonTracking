@@ -14,7 +14,9 @@ import numpy as np
 import imutils
 import cv2
 
-from tracker.tools import Track, Box, Vec2
+from tracker.tools import Track, Box, Vec2, Vec3
+from tracker.camera import CameraConfig
+from tracker.viewer import Viewer
 
 # initialize the HOG descriptor/person detector
 hog = cv2.HOGDescriptor()
@@ -34,7 +36,17 @@ out = cv2.VideoWriter(
 
 
 TRACKS: list[Track] = []
+CAMERAS = [
+    CameraConfig(
+        position=Vec3.from_cartesian(0, 0, 1),
+        direction=Vec3.from_cartesian(1, 0, 0),
+        fov=Vec2.from_cartesian(.4014 * 2, .2618 * 2),  # x: 23°lr, 15°ud
+        resolution=Vec2.from_cartesian(1280, 720)
+    )
+]
 
+
+v = Viewer(cameras=CAMERAS)
 
 start = time()
 while True:
@@ -86,16 +98,22 @@ while True:
 
         # draw bounding boxes
         for track in TRACKS.copy():
-            for i in range(len(track.position_history) - 1):
-                cv2.line(
+            print(track.last_box, track.position_history[-1])
+            for i in range(len(track.position_history)):
+                cv2.circle(
                     image,
-                    (int(track.position_history[i].x), int(track.position_history[i].y)),
-                    (int(track.position_history[i+1].x), int(track.position_history[i+1].y)),
-                    (0, 0, 255 * (10 - min(len(track.position_history) - i, 10))),
-                    3
+                    (
+                        int(track.position_history[i].x),
+                        int(track.position_history[i].y)
+                    ),
+                    2,
+                    (
+                        0,
+                        0,
+                        255 * (10 - min(len(track.position_history) - i, 10))
+                    ),
                 )
 
-            # print(track)
             match track.track_type:
                 case -1:
                     TRACKS.remove(track)
@@ -119,6 +137,8 @@ while True:
                         2
                     )
 
+        v.update_tracks((TRACKS,))
+
     # show some information on the number of bounding boxes
     # show the output images
     cv2.imshow("raw", orig)
@@ -126,6 +146,8 @@ while True:
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
+
+    v.ursina.step()
 
 # When everything done, release the capture
 cap.release()

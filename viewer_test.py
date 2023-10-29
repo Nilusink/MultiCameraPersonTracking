@@ -20,13 +20,15 @@ CAMERAS = [
 ]
 
 
-t = Track(Box(Vec2.from_cartesian(10, 10), Vec2.from_cartesian(10, 10)))
-t2 = Track(Box(Vec2.from_cartesian(960, 540), Vec2.from_cartesian(960, 540)))
+t2 = Track(Box(Vec2.from_cartesian(960, 540), Vec2.from_cartesian(0, 0)))
+
+
+print(t2.last_box, t2.last_box.center, t2.position_history[-1])
 
 
 v = Viewer(cameras=CAMERAS)
 
 while True:
     v.ursina.step()
-    v.update_tracks(((t2,), (t,)))
+    v.update_tracks(((t2,), (t2,)))
 
